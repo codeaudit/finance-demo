@@ -1,17 +1,16 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     extractInfo() {
-      const companyName = sharedState.firstOfEntityRole(client.getMessagePart(), 'company_name')
-      const ticker = sharedState.firstOfEntityRole(client.getMessagePart(), 'ticker_symbol')
+      const companyName = state.firstOfEntityRole(client.getMessagePart(), 'company_name')
+      const ticker = state.firstOfEntityRole(client.getMessagePart(), 'ticker_symbol')
 
       if (companyName) {
         client.updateConversationState({
           requestedCompanyName: companyName,
           confirmedTickerString: null,
         })
-
       } else if (ticker) {
         client.updateConversationState({
           requestedCompanyName: null,
@@ -28,7 +27,6 @@ module.exports = (client, sharedState) => {
           requestedTicker: null,
         })
       }
-
     },
 
     satisfied() {
@@ -39,7 +37,7 @@ module.exports = (client, sharedState) => {
     },
 
     prompt() {
-      client.addResponse('app:response:name:ask_info/company_name')
+      client.addResponse('ask_info/company_name')
       client.expect(client.getStreamName(), ['decline', 'affirmative', 'accept', 'provide_info'])
       client.done()
     },

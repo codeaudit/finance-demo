@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client) => {
   return client.createStep({
     satisfied() {
       return false
@@ -10,6 +10,7 @@ module.exports = (client, sharedState) => {
       let currentGoalStream = client.getConversationState().currentGoalStream
       if (currentGoalStream) {
         console.log('Returning to previous goal stream:', currentGoalStream)
+
         return currentGoalStream
       }
 

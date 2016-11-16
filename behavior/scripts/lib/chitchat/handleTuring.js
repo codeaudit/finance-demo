@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client) => {
   return client.createStep({
     satisfied() {
       return false
@@ -12,7 +12,7 @@ module.exports = (client, sharedState) => {
           client.addTextResponse('Finit is completely automated service with no human involvment that helps with stocks')
           break
         default:
-          client.addTextResponse('Finit is an automated serve that helps with stocks')
+          client.addTextResponse('Finit is an automated service that helps with stocks')
       }
 
       return 'init.proceed'

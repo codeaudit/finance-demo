@@ -11,7 +11,7 @@ class IntrinioClient {
     this.password = password
   }
 
-  authedRequest(path, query, callback) {
+  makeAuthenticatedRequest(path, query, callback) {
     const requestUrl = url.format({
       protocol: 'https',
       host: 'api.intrinio.com',
@@ -21,9 +21,16 @@ class IntrinioClient {
 
     console.log('GETting', requestUrl)
 
-    request({url: requestUrl, auth: {'user': this.username, 'pass': this.password}}, (err, res, body) => {
+    request({
+      url: requestUrl,
+      auth: {
+        'user': this.username,
+        'pass': this.password
+      }
+    }, (err, res, body) => {
       console.log('request succeeded to:', requestUrl)
       console.log('body:', body)
+
       if (err) {
         throw new Error(err)
       }
@@ -44,23 +51,26 @@ class IntrinioClient {
 
   companyByTicker(ticker, callback) {
     console.log('companyByTicker:', ticker)
-    this.authedRequest('companies', {ticker: ticker}, (result) => {
-
+    this.makeAuthenticatedRequest('companies', {ticker: ticker}, (result) => {
       callback(result)
     })
   }
 
   companyByName(name, callback) {
     console.log('companyByName:', name)
-    this.authedRequest('companies', {query: name}, (result) => {
 
+    this.makeAuthenticatedRequest('companies', {query: name}, (result) => {
       callback(result)
     })
   }
 
   getDatapoint(ticker, tag, callback) {
     console.log('getDatapoint:', ticker, ':', tag)
-    this.authedRequest('data_point', {ticker: ticker, item: tag}, (result) => {
+
+    this.makeAuthenticatedRequest('data_point', {
+      ticker: ticker,
+      item: tag
+    }, (result) => {
       console.log('getDatapoint done. result:', result)
 
       callback(result)
@@ -69,16 +79,19 @@ class IntrinioClient {
 
   searchForCompanyByTicker(ticker, callback) {
     console.log('searchForCompanyByTicker:', ticker)
-    this.authedRequest('companies', {ticker: ticker}, (result) => {
 
+    this.makeAuthenticatedRequest('companies', {ticker: ticker}, (result) => {
       callback(result)
     })
   }
 
   dailyPricesByTicker(ticker, days, callback) {
     console.log('dailyPricesByTicker:', ticker)
-    this.authedRequest('prices', {ticker: ticker, page_size: days}, (result) => {
 
+    this.makeAuthenticatedRequest('prices', {
+      ticker: ticker,
+      page_size: days
+    }, (result) => {
       callback(result.data)
     })
   }
@@ -86,8 +99,14 @@ class IntrinioClient {
   historialPricesByTicker(ticker, startDate, endDate, callback) {
     const startDateString = startDate.clone().subtract(7, 'days').format('YYYY-MM-DD')
     const endDateString = endDate.format('YYYY-MM-DD')
+
     console.log('historialPricesByTicker:', ticker, 'startDateString:', startDateString, 'endDateString:', endDateString)
-    this.authedRequest('prices', {ticker: ticker, start_date: startDateString, end_date: endDateString}, (result) => {
+
+    this.makeAuthenticatedRequest('prices', {
+      ticker: ticker,
+      start_date: startDateString,
+      end_date: endDateString
+    }, (result) => {
       console.log('historialPricesByTicker done. result:', result)
 
       callback(result.data)
@@ -95,6 +114,6 @@ class IntrinioClient {
   }
 }
 
-exports.MakeClient = (username, password) => {
+exports.create = (username, password) => {
   return new IntrinioClient(username, password)
 }

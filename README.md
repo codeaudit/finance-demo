@@ -1,5 +1,7 @@
 # Finit
 
-A relatively simple conversational finance application built on Init.ai.
+A basic conversational finance application built on [Init.ai](https:/init.ai).
 
-Ask it common questions about publicly traded US stocks and the companies they represent.
+This is the code and training data backing the demo seen here: https://www.init.ai/platform/automate#demo
+
+Feel free to ask it common questions about publicly traded US stocks and the companies they represent.

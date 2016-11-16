@@ -1,9 +1,9 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     extractInfo() {
-      const datapointType = sharedState.firstOfEntityRole(client.getMessagePart(), 'datapoint')
+      const datapointType = state.firstOfEntityRole(client.getMessagePart(), 'datapoint')
 
       if (datapointType) {
         client.updateConversationState({
@@ -15,11 +15,13 @@ module.exports = (client, sharedState) => {
     },
 
     satisfied() {
-      return Boolean(client.getConversationState().requestedDatapoint) || Boolean(client.getConversationState().confirmedDatapoint)
+      return Boolean(
+        client.getConversationState().requestedDatapoint) ||
+        Boolean(client.getConversationState().confirmedDatapoint
+      )
     },
 
     prompt() {
-
       client.addTextResponse('What datapoint are you asking for?')
       client.done()
     },

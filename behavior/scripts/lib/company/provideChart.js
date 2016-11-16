@@ -1,18 +1,17 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return false
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
     extractInfo() {
-      const chartRange = sharedState.firstOfEntityRole(client.getMessagePart(), 'duration/chart_range')
-
+      const chartRange = state.firstOfEntityRole(client.getMessagePart(), 'duration/chart_range')
 
       if (chartRange && chartRange.parsed) {
         client.updateConversationState({
@@ -22,18 +21,37 @@ module.exports = (client, sharedState) => {
     },
 
     prompt(callback) {
-
+      let selectedChartRange, selectedChartRangeName
       const confirmedTickerString = client.getConversationState().confirmedTickerString
-
       const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
-
-      let time12m = sharedState.imgixClient.buildURL(`http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1y&q=l&l=on&z=l&p=m50,m400`, {w: 764, h: 400, fit: 'fill', bg: 'FFFFFF'})
-      let time1m = sharedState.imgixClient.buildURL(`http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1m&q=l&l=on&z=l&p=m5`, {w: 764, h: 400, fit: 'fill', bg: 'FFFFFF'})
-      let time1d = sharedState.imgixClient.buildURL(`http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1d&q=l&l=on&z=l`, {w: 764, h: 400, fit: 'fill', bg: 'FFFFFF'})
-
+      let time12m = state.imgixClient.buildURL(
+        `http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1y&q=l&l=on&z=l&p=m50,m400`,
+        {
+          w: 764,
+          h: 400,
+          fit: 'fill',
+          bg: 'FFFFFF',
+        }
+      )
+      let time1m = state.imgixClient.buildURL(
+        `http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1m&q=l&l=on&z=l&p=m5`,
+        {
+          w: 764,
+          h: 400,
+          fit: 'fill',
+          bg: 'FFFFFF'
+        }
+      )
+      let time1d = state.imgixClient.buildURL(
+        `http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=1d&q=l&l=on&z=l`, {
+          w: 764,
+          h: 400,
+          fit: 'fill',
+          bg: 'FFFFFF'
+        }
+      )
       const chartRangeValue = client.getConversationState().requestChartRange
-      let selectedChartRange
-      let selectedChartRangeName
+
       if (chartRangeValue && chartRangeValue.parsed && chartRangeValue.parsed) {
         if (chartRangeValue.parsed.results && chartRangeValue.parsed.results.length > 0) {
           let bestRangeParse = chartRangeValue.parsed.results[0]
@@ -58,9 +76,11 @@ module.exports = (client, sharedState) => {
           let intDay
           let intMonth
           let intYear
+
           switch (bestRangeParse.value.unit) {
             case 'day':
               intDay = Math.floor(bestRangeParse.value.value)
+
               if (intDay >= 2 && intDay <= 15) {
                 selectedChartRange = `${intDay}d`
                 selectedChartRangeName = `${intDay} days`
@@ -116,29 +136,29 @@ module.exports = (client, sharedState) => {
               selectedChartRange = '7d'
               selectedChartRangeName = 'Seven days'
           }
-
         }
-
       }
 
-
-      sharedState.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
-
-        let carousel = {
-          items: [
-
-          ],
-        }
+      state.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
+        let carousel = {items: []}
 
         if (selectedChartRange && selectedChartRangeName) {
-          let generatedChartURL = `http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=${selectedChartRange}&q=l&l=on&z=l`
-          generatedChartURL = sharedState.imgixClient.buildURL(generatedChartURL, {w: 764, h: 400, fit: 'fill', bg: 'FFFFFF'})
+          let generatedChartURL = state.imgixClient.buildURL(
+            `http://chart.finance.yahoo.com/z?s=${confirmedTickerString}&t=${selectedChartRange}&q=l&l=on&z=l`,
+            {
+              w: 764,
+              h: 400,
+              fit: 'fill',
+              bg: 'FFFFFF'
+            }
+          )
+
           carousel.items = [
             {
               title: selectedChartRangeName,
               description: `Price history of ${confirmedTickerString}`,
-              'media_url': generatedChartURL,
-              'media_type': 'image/png',
+              media_url: generatedChartURL,
+              media_type: 'image/png',
               actions: [
                 {
                   type: 'postback',
@@ -160,8 +180,8 @@ module.exports = (client, sharedState) => {
             {
               title: '1 day',
               description: `Price history of ${confirmedTickerString}`,
-              'media_url': time1d,
-              'media_type': 'image/png',
+              media_url: time1d,
+              media_type: 'image/png',
               actions: [
                 {
                   type: 'postback',
@@ -180,8 +200,8 @@ module.exports = (client, sharedState) => {
             {
               title: '1 month',
               description: `Price history of ${confirmedTickerString}`,
-              'media_url': time1m,
-              'media_type': 'image/png',
+              media_url: time1m,
+              media_type: 'image/png',
               actions: [
                 {
                   type: 'postback',
@@ -200,8 +220,8 @@ module.exports = (client, sharedState) => {
             {
               title: '12 months',
               description: `Price history of ${confirmedTickerString}`,
-              'media_url': time12m,
-              'media_type': 'image/png',
+              media_url: time12m,
+              media_type: 'image/png',
               actions: [
                 {
                   type: 'postback',
@@ -224,7 +244,6 @@ module.exports = (client, sharedState) => {
         client.done()
         callback()
       })
-
     },
   })
 }

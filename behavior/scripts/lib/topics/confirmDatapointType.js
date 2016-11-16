@@ -1,19 +1,17 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return Boolean(client.getConversationState().confirmedDatapoint)
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
     prompt(callback) {
-
       let baseClassification = client.getMessagePart().classification.base_type.value
-
       let receivedConfirmation = () => {
         client.updateConversationState({
           confirmedDatapoint: client.getConversationState().proposedDatapoint,
@@ -21,13 +19,13 @@ module.exports = (client, sharedState) => {
           requestedDatapoint: null,
         })
 
-
         callback('init.proceed')
       }
 
-      if (!sharedState.justGotConfirmation) {
+      if (!state.justGotConfirmation) {
         if (baseClassification === 'affirmative' || baseClassification === 'accept') {
           receivedConfirmation()
+
           return
         } else if (baseClassification === 'decline') {
           client.updateConversationState({
@@ -36,21 +34,22 @@ module.exports = (client, sharedState) => {
             requestedDatapoint: null,
           })
 
-
           client.addTextResponse('So what type of data do you want then?')
           client.done()
         }
       }
-
       const requestedDatapoint = client.getConversationState().requestedDatapoint
 
       if (!requestedDatapoint) {
         callback()
+
         return
       }
-      sharedState.datapointDB.searchForDatapoint(sharedState.algoliaClient, requestedDatapoint.value, (results) => {
+
+      state.datapointDB.searchForDatapoint(state.algoliaClient, requestedDatapoint.value, (results) => {
         if (results.length == 0) {
           client.addTextResponse('That is not a supported datatype, sorry')
+
           return client.done()
         }
 
@@ -64,6 +63,7 @@ module.exports = (client, sharedState) => {
           client.updateConversationState({
             confirmedDatapoint: proposedDatapoint,
           })
+
           return receivedConfirmation()
         }
 

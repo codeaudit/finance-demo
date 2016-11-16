@@ -1,12 +1,12 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return false
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
@@ -14,13 +14,11 @@ module.exports = (client, sharedState) => {
       const confirmedTickerString = client.getConversationState().confirmedTickerString
       const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
 
-      sharedState.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
-
+      state.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
         client.addTextResponse(`${result.short_description}`)
         client.done()
         callback()
       })
-
     },
   })
 }

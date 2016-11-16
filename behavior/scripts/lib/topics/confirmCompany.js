@@ -1,30 +1,27 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return Boolean(client.getConversationState().confirmedTickerString)
     },
 
-
     prompt(callback) {
-
       let baseClassification = client.getMessagePart().classification.base_type.value
-
       let receivedConfirmation = () => {
-        sharedState.justGotConfirmation = true
+        state.justGotConfirmation = true
 
         client.updateConversationState({
           confirmedTickerString: client.getConversationState().proposedTickerString,
           proposedTickerString: null,
         })
 
-
         callback('init.proceed')
       }
 
       if (baseClassification === 'affirmative' || baseClassification === 'accept') {
         receivedConfirmation()
+
         return
       } else if (baseClassification === 'decline') {
         client.updateConversationState({
@@ -39,11 +36,10 @@ module.exports = (client, sharedState) => {
 
       const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
 
-
-      sharedState.companyDB.searchForCompany(sharedState.algoliaClient, nameOrTicker.value, (results) => {
-
+      state.companyDB.searchForCompany(state.algoliaClient, nameOrTicker.value, (results) => {
         if (results.length == 0) {
-          client.addTextResponse(`${nameOrTicker.value} did not match a known comapny, so please restate that`)
+          client.addTextResponse(`${nameOrTicker.value} did not match a known company, so please restate that`)
+
           return client.done()
         }
 
@@ -65,10 +61,11 @@ module.exports = (client, sharedState) => {
 
         if (autoConfirm) {
           receivedConfirmation()
+
           callback('init.proceed')
         } else {
-          client.addResponse('app:response:name:ask_confirm/company', {company_name: firstResult.name.trim(), ticker_symbol: firstResult.ticker})
-          // client.addTextResponse('%[Yes](reply:YES) %[No](reply:NO)')
+          client.addResponse('ask_confirm/company', {company_name: firstResult.name.trim(), ticker_symbol: firstResult.ticker})
+
           client.expect(client.getStreamName(), ['decline', 'affirmative', 'accept', 'provide_info', 'switch_company'])
           client.done()
         }

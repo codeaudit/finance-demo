@@ -3,6 +3,7 @@
 exports.searchForCompanyByTicker = function searchForCompanyByTicker(algoliaClient, ticker, callback) {
 	const upperTicker = ticker.trim().toUpperCase()
 	const companyIndex = algoliaClient.initIndex('FinChat-Companies-Staging')
+
 	companyIndex.search(upperTicker, {getRankingInfo: true}, (err, content) => {
 		if (err) {
 			return
@@ -11,6 +12,7 @@ exports.searchForCompanyByTicker = function searchForCompanyByTicker(algoliaClie
 		for (let i = 0; i < content.hits.length; i++) {
 			let hit = content.hits[i]
 			const hitTicker = hit.ticker.toUpperCase()
+
 			if (hitTicker === upperTicker) {
 				return callback({
 					ticker: hit.ticker,
@@ -19,12 +21,14 @@ exports.searchForCompanyByTicker = function searchForCompanyByTicker(algoliaClie
 				})
 			}
 		}
+
 		callback(null)
 	})
 }
 
 exports.searchForCompany = function searchForCompany(algoliaClient, query, callback) {
 	const companyIndex = algoliaClient.initIndex('FinChat-Companies-Staging')
+
 	companyIndex.search(query, {getRankingInfo: true}, (err, content) => {
 		if (err) {
 			return
@@ -41,6 +45,5 @@ exports.searchForCompany = function searchForCompany(algoliaClient, query, callb
 		})
 
 		callback(hits)
-
 	})
 }
