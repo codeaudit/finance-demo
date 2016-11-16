@@ -1,13 +1,13 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client) => {
   return client.createStep({
     satisfied() {
       return false
     },
 
     prompt() {
-      client.addResponse('app:response:name:you_are_welcome')
+      client.addResponse('you_are_welcome')
       return client.done()
     },
   })

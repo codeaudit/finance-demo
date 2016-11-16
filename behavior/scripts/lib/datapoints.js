@@ -2,6 +2,7 @@
 
 exports.searchForDatapoint = function searchForDatapoint(algoliaClient, query, callback) {
 	const datapointIndex = algoliaClient.initIndex('staging_FinChat-DataPoints')
+
 	datapointIndex.search(query, (err, content) => {
 		if (err) {
 			console.log('Error searching algolia:', err)
@@ -20,6 +21,5 @@ exports.searchForDatapoint = function searchForDatapoint(algoliaClient, query, c
 		})
 
 		callback(hits)
-
 	})
 }

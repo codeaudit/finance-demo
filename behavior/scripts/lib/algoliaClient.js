@@ -2,6 +2,6 @@
 
 const algoliasearch = require('algoliasearch')
 
-exports.MakeClient = function MakeClient(a, secret) {
+exports.create = function create(a, secret) {
 	return algoliasearch(a, secret)
 }

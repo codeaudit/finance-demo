@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client) => {
   return client.createStep({
     satisfied() {
       return false
@@ -8,6 +8,7 @@ module.exports = (client, sharedState) => {
 
     prompt() {
       let baseClassification = client.getMessagePart().classification.base_type.value
+
       client.updateConversationState({
         currentGoalStream: client.getStreamName(),
       })

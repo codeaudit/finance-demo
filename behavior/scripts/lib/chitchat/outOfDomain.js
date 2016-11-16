@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = (client, sharedState) => {
+module.exports = (client) => {
   return client.createStep({
     satisfied() {
       return false
@@ -8,7 +8,9 @@ module.exports = (client, sharedState) => {
 
     prompt() {
       console.log('Out of domain query')
-      client.addResponse('app:response:name:state_out_of_domain')
+
+      client.addResponse('state_out_of_domain')
+
       return 'init.proceed'
     },
   })

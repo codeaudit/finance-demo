@@ -11,7 +11,7 @@ const datapointDB = require('./lib/datapoints.js')
 
 // ----------------------------------------------------------------------------------
 // Configurable constants used within steps
-
+// ----------------------------------------------------------------------------------
 const responseDateFormat = {
   sameDay: '[today]',
   nextDay: '[tomorrow]',
@@ -29,9 +29,10 @@ if (moment().utc().hour() < 8) {
 }
 
 // ----------------------------------------------------------------------------------
-// This is used for displaying NLP information on the demos page, not required for the application
-
-function sendToPusher(client, next) {
+// This uses Pusher to emit data for remote display and is for demonstration only
+// See: https://pusher.com/
+// ----------------------------------------------------------------------------------
+function emitClientOverPusher(client, next) {
   const env = client.getCurrentApplicationEnvironment()
 
   const pusherClient = new Pusher({
@@ -55,26 +56,25 @@ function sendToPusher(client, next) {
 
     next()
   })
-
 }
 
 // ----------------------------------------------------------------------------------
-
-// Typically an application would only define the handle function -- its main entry point. The Pusher function is just for demo use.
+// This demo emits data over Pusher to external resources for display.
+// Typically the handle function would run the logic invocation directly.
+// ----------------------------------------------------------------------------------
 exports.handle = function handle(client) {
-  sendToPusher(client, () => {
-    exports.handleAfterPusher(client)
+  emitClientOverPusher(client, () => {
+    exports.runLogicInvocation(client)
   })
 }
 
-exports.handleAfterPusher = function handleAfterPusher(client) {
+exports.runLogicInvocation = function runLogicInvocation(client) {
   const env = client.getCurrentApplicationEnvironment()
-
   const imgixClient = new ImgixClient({
     host: env.imgix.host,
     secureURLToken: env.imgix.token,
   })
-  const intrinioClient = intrinio.MakeClient(env.intrinio.username, env.intrinio.password)
+  const intrinioClient = intrinio.create(env.intrinio.username, env.intrinio.password)
 
   // Dependencies to share between steps
   const dependencies = {
@@ -86,11 +86,10 @@ exports.handleAfterPusher = function handleAfterPusher(client) {
     datapointDB: datapointDB,
     firstOfEntityRole: require('./lib/slotutil/firstOfEntityRole'),
     justGotConfirmation: false,
-    algoliaClient: require('./lib/algoliaClient').MakeClient(env.algolia.a, env.algolia.secret),
+    algoliaClient: require('./lib/algoliaClient').create(env.algolia.a, env.algolia.secret),
   }
 
   // Include steps while injecting dependencies
-
   const sayHello = require('./lib/chitchat/sayHello')(client, dependencies)
   const sayGoodbye = require('./lib/chitchat/goodbye')(client, dependencies)
   const untrained = require('./lib/chitchat/untrained')(client, dependencies)
@@ -123,8 +122,8 @@ exports.handleAfterPusher = function handleAfterPusher(client) {
   })
 
   // ----------------------------------------------------------------------------------
-  // CHECK MESSAGE FOR CONTENT TYPE AND CONFIDENCE
-
+  // Check Message for contentType and confidence
+  // ----------------------------------------------------------------------------------
   const messagePart = client.getMessagePart()
 
   if (handleImage()) { // Returns true if message was handled image, after calling client.done()
@@ -132,12 +131,11 @@ exports.handleAfterPusher = function handleAfterPusher(client) {
   }
 
   if (messagePart.classification.overall_confidence < 0.15) {
-    client.addResponse('app:response:name:error/request_rephrase')
+    client.addResponse('error/request_rephrase')
     client.done()
+
     return
   }
-
-  // ----------------------------------------------------------------------------------
 
   client.runFlow({
     classifications: {

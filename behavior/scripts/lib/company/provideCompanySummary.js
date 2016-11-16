@@ -2,13 +2,13 @@
 
 const url = require('url')
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return false
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
@@ -16,18 +16,28 @@ module.exports = (client, sharedState) => {
       const confirmedTickerString = client.getConversationState().confirmedTickerString
       const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
 
-      sharedState.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
-
-        const companyUrl = result.company_url
+      state.intrinioClient.companyByTicker(confirmedTickerString, (result) => {
+        let actions = []
+        let description = ''
         let logoUrl = null
+        const companyUrl = result.company_url
+
         if (companyUrl) {
           const parsedUrl = url.parse(companyUrl)
+
           if (parsedUrl && parsedUrl.host) {
-            logoUrl = sharedState.imgixClient.buildURL(`https://logo.clearbit.com/${parsedUrl.host}`, {w: 764, h: 400, fit: 'fill', bg: 'FFFFFF'})
+            logoUrl = state.imgixClient.buildURL(
+              `https://logo.clearbit.com/${parsedUrl.host}`,
+              {
+                w: 764,
+                h: 400,
+                fit: 'fill',
+                bg: 'FFFFFF'
+              }
+            )
           }
         }
 
-        let description = ''
         if (result.ticker) {
           if (result.stock_exchange) {
             description += `${result.ticker} (${result.stock_exchange})\n`
@@ -35,20 +45,17 @@ module.exports = (client, sharedState) => {
             description += `${result.ticker}\n`
           }
         }
+
         if (result.industry_category) {
           description += `${result.industry_category}\n`
         }
 
-        let actions = []
-
         if (companyUrl) {
-          actions.push(
-            {
-              type: 'link',
-              text: 'Company website ',
-              uri: companyUrl,
-            }
-          )
+          actions.push({
+            type: 'link',
+            text: 'Company website ',
+            uri: companyUrl,
+          })
         }
 
         actions.push({
@@ -62,7 +69,7 @@ module.exports = (client, sharedState) => {
               ticker: result.ticker,
             },
           },
-        })
+        },)
 
         actions.push({
           type: 'postback',
@@ -93,8 +100,6 @@ module.exports = (client, sharedState) => {
         client.done()
         callback()
       })
-
     },
   })
-
 }

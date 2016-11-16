@@ -3,14 +3,14 @@
 const moment = require('moment')
 const numeral = require('numeral')
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
     satisfied() {
       return false
     },
 
     extractInfo() {
-      const volumeTime = sharedState.firstOfEntityRole(client.getMessagePart(), 'time/volume_time')
+      const volumeTime = state.firstOfEntityRole(client.getMessagePart(), 'time/volume_time')
 
 
       if (volumeTime && volumeTime.parsed) {
@@ -20,35 +20,34 @@ module.exports = (client, sharedState) => {
       }
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
     prompt(callback) {
-
-      const confirmedTickerString = client.getConversationState().confirmedTickerString
-
-      const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
-
       let volumeTime
+      const confirmedTickerString = client.getConversationState().confirmedTickerString
+      const nameOrTicker = client.getConversationState().requestedCompanyName || client.getConversationState().requestedTicker
       const today = moment().utc()
       let isToday = false
       let isFuture = false
-      if (client.getMessagePart().classification.sub_type.value === 'current') {
-      } else {
+
+      if (client.getMessagePart().classification.sub_type.value !== 'current') {
         let requestedVolumeTime = client.getConversationState().requestedVolumeTime || client.getConversationState().requestedPriceTime
+
         if (requestedVolumeTime) {
-          volumeTime = sharedState.tryParseFirstTime(requestedVolumeTime)
+          volumeTime = state.tryParseFirstTime(requestedVolumeTime)
+
           if (!volumeTime) {
             // Could not parse time
             client.addTextResponse('What date do you want the volume for?')
             callback()
           } else {
             if (volumeTime.isSame(today, 'day')) {
-              // Is today
               isToday = true
             } else if (volumeTime.isAfter(today, 'day')) {
               isFuture = true
+
               client.addTextResponse('Please provide a calendar date, in the past, to clarify when you mean')
               callback()
               client.done()
@@ -58,13 +57,9 @@ module.exports = (client, sharedState) => {
       }
 
       let returnVolume = function returnVolume(dayVolumeResult) {
-
-        let responseType = 'app:response:name:provide_volume'
-        let volumeData = null
-
-        responseType = 'app:response:name:provide_volume'
-        volumeData = {
-          'time/volume_time': moment.utc(dayVolumeResult.date).hour(17).calendar(null, sharedState.responseDateFormat),
+        let responseType = 'provide_volume'
+        let volumeData = {
+          'time/volume_time': moment.utc(dayVolumeResult.date).hour(17).calendar(null, state.responseDateFormat),
           'volume': `${numeral(dayVolumeResult.volume).format('0,0')}`,
           'ticker_symbol': confirmedTickerString,
         }
@@ -75,26 +70,27 @@ module.exports = (client, sharedState) => {
       }
 
       if (volumeTime) {
-        sharedState.intrinioClient.historialPricesByTicker(confirmedTickerString, volumeTime, volumeTime, (result) => {
+        state.intrinioClient.historialPricesByTicker(confirmedTickerString, volumeTime, volumeTime, (result) => {
           if (result.length === 0) {
             client.addTextResponse('Could not get results')
             client.done()
+
             return
           }
+
           returnVolume(result[0])
         })
       } else {
-        sharedState.intrinioClient.dailyPricesByTicker(confirmedTickerString, 5, (result) => {
+        state.intrinioClient.dailyPricesByTicker(confirmedTickerString, 5, (result) => {
           if (result.length === 0) {
             client.addTextResponse('Could not get results')
             client.done()
             return
           }
+
           returnVolume(result[0])
         })
       }
-
-
     },
   })
 }

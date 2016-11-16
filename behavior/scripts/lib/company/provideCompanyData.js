@@ -3,30 +3,26 @@
 const moment = require('moment')
 const numeral = require('numeral')
 
-module.exports = (client, sharedState) => {
+module.exports = (client, state) => {
   return client.createStep({
-    extractInfo() {
-
-    },
-
     satisfied() {
       return false
     },
 
     prompt(callback) {
-
       const datapointType = client.getConversationState().confirmedDatapoint
       const confirmedTickerString = client.getConversationState().confirmedTickerString
 
-      sharedState.intrinioClient.getDatapoint(confirmedTickerString, datapointType.tag, (result) => {
+      state.intrinioClient.getDatapoint(confirmedTickerString, datapointType.tag, (result) => {
+        let format, displayValue
+
         if (!result) {
           client.addTextResponse('There was a problem getting that statistic, sorry')
+
           return client.done()
         }
 
         let value = result.value
-        let format
-        let displayValue
         switch (datapointType.format) {
           case 'percent':
             format = '0.00%'
@@ -37,7 +33,7 @@ module.exports = (client, sharedState) => {
             displayValue = numeral(value).format(format)
             break
           case 'date':
-            displayValue = moment.utc(value).hour(17).calendar(null, sharedState.responseDateFormat)
+            displayValue = moment.utc(value).hour(17).calendar(null, state.responseDateFormat)
             break
           case 'number':
             format = '0,0'
@@ -52,7 +48,8 @@ module.exports = (client, sharedState) => {
         }
 
         client.addTextResponse(`The ${datapointType.name.toLowerCase()} for ${confirmedTickerString} is ${displayValue}`)
-        return client.done()
+
+        client.done()
       })
     },
   })
