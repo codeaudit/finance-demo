@@ -69,7 +69,7 @@ module.exports = (client, state) => {
               ticker: result.ticker,
             },
           },
-        },)
+        })
 
         actions.push({
           type: 'postback',
