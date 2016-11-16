@@ -104,11 +104,11 @@ exports.runLogicInvocation = function runLogicInvocation(client) {
   const sayYouAreWelcome = require('./lib/chitchat/sayYouAreWelcome')(client, dependencies)
   const getHelp = require('./lib/chitchat/getHelp')(client, dependencies)
   const provideChart = require('./lib/company/provideChart')(client, dependencies)
-  const recordGoal = require('./lib/misc/recordGoal')(client, dependencies)
-  const returnToGoal = require('./lib/misc/returnToGoal')(client, dependencies)
+  const recordGoal = require('./lib/recordGoal')(client, dependencies)
+  const returnToGoal = require('./lib/returnToGoal')(client, dependencies)
   const outOfDomain = require('./lib/chitchat/outOfDomain')(client, dependencies)
   const handleTuring = require('./lib/chitchat/handleTuring')(client, dependencies)
-  const handleImage = require('./lib/misc/handleImage')(client, dependencies)
+  const handleImage = require('./lib/handleImage')(client, dependencies)
 
   const resetUser = client.createStep({
     satisfied() {
