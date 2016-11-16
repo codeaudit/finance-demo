@@ -38,7 +38,7 @@ module.exports = (client, state) => {
 
       state.companyDB.searchForCompany(state.algoliaClient, nameOrTicker.value, (results) => {
         if (results.length == 0) {
-          client.addTextResponse(`${nameOrTicker.value} did not match a known comapny, so please restate that`)
+          client.addTextResponse(`${nameOrTicker.value} did not match a known company, so please restate that`)
 
           return client.done()
         }
