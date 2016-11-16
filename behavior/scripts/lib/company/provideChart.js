@@ -6,7 +6,7 @@ module.exports = (client, state) => {
       return false
     },
 
-    next: function next() {
+    next() {
       return undefined
     },
 
