@@ -139,8 +139,8 @@ exports.runLogicInvocation = function runLogicInvocation(client) {
 
   client.runFlow({
     classifications: {
-      'request_information': 'companyInfo',
-      'request_information/company': 'companyDescription',
+      'request_information': 'providePrice',
+      'request_information/company': 'providePrice',
       'request_price': 'providePrice',
       'request_volume': 'provideVolume',
       'request_chart': 'provideChart',
