@@ -29,3 +29,6 @@ that's crazy
 
 how about on [July 27](time/price_time)?
 * request_price/low
+
+how about [Google](company_name)
+* switch_company
