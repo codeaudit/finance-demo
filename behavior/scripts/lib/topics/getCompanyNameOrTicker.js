@@ -6,6 +6,15 @@ module.exports = (client, state) => {
       const companyName = state.firstOfEntityRole(client.getMessagePart(), 'company_name')
       const ticker = state.firstOfEntityRole(client.getMessagePart(), 'ticker_symbol')
 
+      const postbackData = client.getPostbackData()
+      if (postbackData && postbackData.confirmedTicker) {
+        client.updateConversationState({
+          requestedTicker: null,
+          confirmedTickerString: postbackData.confirmedTicker,
+        })
+        return
+      }
+
       if (companyName) {
         client.updateConversationState({
           requestedCompanyName: companyName,

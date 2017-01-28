@@ -19,6 +19,13 @@ module.exports = (client, state) => {
         callback('init.proceed')
       }
 
+      const postbackData = client.getPostbackData()
+      if (postbackData && postbackData.confirmed) {
+        receivedConfirmation()
+
+        return
+      }
+
       if (baseClassification === 'affirmative' || baseClassification === 'accept') {
         receivedConfirmation()
 
@@ -64,7 +71,17 @@ module.exports = (client, state) => {
 
           callback('init.proceed')
         } else {
-          client.addResponse('ask_confirm/company', {company_name: firstResult.name.trim(), ticker_symbol: firstResult.ticker})
+          const returnToStream = client.getConversationState().currentGoalStream
+          const replies = [
+            client.makeReplyButton(`Yes, ${firstResult.ticker}`, null, returnToStream, {confirmed: true}),
+          ]
+          for (let alternativeNum = 1; alternativeNum < Math.min(4, results.length); alternativeNum++) {
+            const curResult = results[alternativeNum]
+            const curTicker = firstResult.ticker
+            replies.push(client.makeReplyButton(`I meant ${curResult.ticker}`, null, returnToStream, {confirmedTicker: curResult.ticker}))
+          }
+          replies.push(client.makeReplyButton('No', null, returnToStream, {rejected: true}))
+          client.addResponseWithReplies('ask_confirm/company', {company_name: firstResult.name.trim(), ticker_symbol: firstResult.ticker}, replies)
 
           client.expect(client.getStreamName(), ['decline', 'affirmative', 'accept', 'provide_info', 'switch_company'])
           client.done()
